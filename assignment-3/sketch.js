@@ -36,7 +36,7 @@ class Ball {
   move() {
     let elapsedTime = (millis() - this.contactTime) / 1000;
     let quadraticValue = 0.4 * elapsedTime * (2 - elapsedTime);
-    this.x += 1;
+    this.x += elapsedTime / 3;
     this.y += -1 * map(quadraticValue, 0, 6, 1, 5);
     // rotate eyeball
     this.rotation += 0.5;
