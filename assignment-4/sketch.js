@@ -1,87 +1,121 @@
-let textArray = [];
-let snake = [];
+let currentBunch = [];
+let bunches = [];
 
-// noise
 let xOff = 0;
 let yOff = 1000;
 
 class Letter {
   constructor(letter) {
     this.letter = letter;
-    this.xPos = 0;
-    this.yPos = 0;
-    this.speedX = 1;
-    this.speedY = 1;
+    this.x = 0;
+    this.y = 0;
+    this.speedX = 0.5;
+    this.speedY = 0.5;
+    this.rotation = 0;
     this.r = random(255);
     this.g = random(255);
     this.b = random(255);
   }
 
   updatePosition(x, y) {
-    this.xPos = x;
-    this.yPos = y;
+    this.x = x;
+    this.y = y;
   }
 
-  calculateVector(headX, headY, headvX, headvY) {
-    if (headvX > 0 && headvY > 0) {
+  calculateNewPosition(nextX, nextY, nextSpeedX, nextSpeedY) {
+    this.rotation += noise(this.x * 0.01, this.y * 0.01) * 0.01;
+
+    if (nextSpeedX > 0 && nextSpeedY > 0) {
       this.updatePosition(
-        headX - 20 + noise(xOff) * 5,
-        headY - 20 + noise(yOff) * 5
+        nextX - 20 + noise(xOff) * 20,
+        nextY + noise(yOff) * 20
       );
     }
 
-    if (headvX > 0 && headvY < 0) {
+    if (nextSpeedX > 0 && nextSpeedY < 0) {
       this.updatePosition(
-        headX - 20 + noise(xOff) * 5,
-        headY + 20 + noise(yOff) * 5
+        nextX - 20 + noise(xOff) * 5,
+        nextY + 20 + noise(yOff) * 5
       );
     }
 
-    if (headvX < 0 && headvY < 0) {
+    if (nextSpeedX < 0 && nextSpeedY < 0) {
       this.updatePosition(
-        headX + 20 + noise(xOff) * 5,
-        headY + 20 + noise(yOff) * 5
+        nextX + 20 + noise(xOff) * 5,
+        nextY + 20 + noise(yOff) * 5
       );
     }
 
-    if (headvX < 0 && headvY > 0) {
-      this.updatePosition(headX + 20  + noise(xOff) * 5, headY - 20 + noise(yOff) * 5);
+    if (nextSpeedX < 0 && nextSpeedY > 0) {
+      this.updatePosition(
+        nextX + 20 + noise(xOff) * 5,
+        nextY - 20 + noise(yOff) * 5
+      );
     }
   }
 
   draw() {
-    this.speedvX = snake[textArray.length-1].speedvX;
-    this.speedvY = snake[textArray.length-1].speedvY;
+    push();
+    translate(this.x, this.y);
+    rotate(this.rotation);
     fill(this.r, this.g, this.b);
-    text(this.letter, this.xPos, this.yPos);
+    text(this.letter, 0, 0);
+    pop();
   }
 }
 
 function setup() {
   createCanvas(400, 400);
   textSize(40);
-  snake.push(new Letter(" "));
-  snake[0].updatePosition(random(300), random(300));
+  currentBunch.push(new Letter(" "));
+  currentBunch[0].updatePosition(random(width), random(height));
 }
 
 function draw() {
-  background(100);
-
+  background(255);
   detectCollision();
 
-  snake[0].updatePosition(
-    snake[0].xPos + snake[0].speedX,
-    snake[0].yPos + snake[0].speedY
+  let lastLetter = currentBunch[currentBunch.length - 1];
+  lastLetter.updatePosition(
+    lastLetter.x + lastLetter.speedX,
+    lastLetter.y + lastLetter.speedY,
+    lastLetter.speedX,
+    lastLetter.speedY
   );
 
-  for (let i = 1; i < snake.length; i++) {
-    snake[i].calculateVector(
-      snake[i - 1].xPos,
-      snake[i - 1].yPos,
-      snake[i - 1].speedX,
-      snake[i - 1].speedY
+  for (let i = currentBunch.length - 2; i > -1; i--) {
+    currentBunch[i].calculateNewPosition(
+      currentBunch[i + 1].x,
+      currentBunch[i + 1].y,
+      currentBunch[i + 1].speedX,
+      currentBunch[i + 1].speedY
     );
-    snake[i].draw();
+    currentBunch[i].draw();
+  }
+
+  if (bunches.length > 0) {
+    for (let i = 0; i < bunches.length; i++) {
+      let lastLetter =
+        bunches[i].currentBunch[bunches[i].currentBunch.length - 1];
+      lastLetter.updatePosition(
+        lastLetter.x + lastLetter.speedX,
+        lastLetter.y + lastLetter.speedY,
+        lastLetter.speedX,
+        lastLetter.speedY
+      );
+    }
+
+    for (let i = 0; i < bunches.length; i++) {
+      for (let j = bunches[i].currentBunch.length - 2; j > -1; j--) {
+        bunches[i].currentBunch[j].calculateNewPosition(
+          bunches[i].currentBunch[j + 1].x,
+          bunches[i].currentBunch[j + 1].y,
+          bunches[i].currentBunch[j + 1].speedX,
+          bunches[i].currentBunch[j + 1].speedY
+        );
+        bunches[i].currentBunch[j].draw();
+      }
+    }
   }
 
   xOff += 0.01;
@@ -89,28 +123,60 @@ function draw() {
 }
 
 function detectCollision() {
-  if (snake[0].xPos > width - 20) {
-    snake[0].speedX *= -1;
-    snake[0].xPos = width - 20;
+  let lastLetter = currentBunch[currentBunch.length - 1];
+
+  if (lastLetter.x > width - 20) {
+    lastLetter.speedX *= -1;
+    lastLetter.x = width - 20;
   }
-  if (snake[0].xPos < 0) {
-    snake[0].speedX *= -1;
-    snake[0].xPos = 0;
+  if (lastLetter.x < 20) {
+    lastLetter.speedX *= -1;
+    lastLetter.x = 20;
   }
-  if (snake[0].yPos > height - 20) {
-    snake[0].speedY *= -1;
-    snake[0].yPos = height - 20;
+  if (lastLetter.y > height - 20) {
+    lastLetter.speedY *= -1;
+    lastLetter.y = height - 20;
   }
-  if (snake[0].yPos < 0) {
-    snake[0].speedY *= -1;
-    snake[0].yPos = 0;
+  if (lastLetter.y < 20) {
+    lastLetter.speedY *= -1;
+    lastLetter.y = 20;
+  }
+
+  if (bunches.length > 0) {
+    for (let i = 0; i < bunches.length; i++) {
+      let lastLetter =
+        bunches[i].currentBunch[bunches[i].currentBunch.length - 1];
+      if (lastLetter.x > width - 20) {
+        lastLetter.speedX *= -1;
+        lastLetter.x = width - 20;
+      }
+      if (lastLetter.x < 20) {
+        lastLetter.speedX *= -1;
+        lastLetter.x = 20;
+      }
+      if (lastLetter.y > height - 20) {
+        lastLetter.speedY *= -1;
+        lastLetter.y = height - 20;
+      }
+      if (lastLetter.y < 20) {
+        lastLetter.speedY *= -1;
+        lastLetter.y = 20;
+      }
+    }
   }
 }
 
 function keyPressed() {
-  // Add the pressed key to the textArray
-  if (key.length === 1) {
-    textArray.push(key);
-    snake.push(new Letter(key));
+  if (key != " " && key.length == 1) {
+    let tempTail = currentBunch.pop();
+    currentBunch.push(new Letter(key));
+    currentBunch.push(tempTail);
+  }
+
+  if (key == " ") {
+    bunches.push({ currentBunch });
+    currentBunch = [];
+    currentBunch.push(new Letter(" "));
+    currentBunch[0].updatePosition(random(width), random(height));
   }
 }
