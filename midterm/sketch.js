@@ -36,6 +36,45 @@ async function createDetector() {
   );
 }
 
+// initialise camera
+async function initCamera(width, height, fps) {
+  const constraints = {
+    audio: false,
+    video: {
+      facingMode: "user",
+      width: width,
+      height: height,
+      frameRate: { max: fps },
+    },
+  };
+
+  const video = document.querySelector("#pose-video");
+  video.width = width;
+  video.height = height;
+
+  // get video stream
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  video.srcObject = stream;
+
+  return new Promise((resolve) => {
+    video.onloadedmetadata = () => {
+      resolve(video);
+    };
+  });
+}
+
+const video = document.querySelector("#pose-video");
+const canvas = document.querySelector("#pose-canvas");
+const ctx = canvas.getContext("2d");
+
+const resultLayer = {
+  right: document.querySelector("#pose-result-right"),
+  left: document.querySelector("#pose-result-left"),
+};
+// configure gesture estimator
+// add "✌🏻" and "👍" as sample gestures
+const knownGestures = [fp.Gestures.VictoryGesture, fp.Gestures.ThumbsUpGesture];
+
 function preload() {
   eye = loadImage("eye.png");
   bg = loadImage("bg.jpg");
@@ -120,7 +159,7 @@ function draw() {
   text("morbid juggler", 250, 50);
   textSize(30);
   fill("white");
-  text('dropped '+count, 70, 470);
+  text("dropped " + count, 70, 470);
 }
 
 // detect when a user is dragging a ball
@@ -154,20 +193,6 @@ function keyPressed() {
 }
 
 async function main() {
-  const video = document.querySelector("#pose-video");
-  const canvas = document.querySelector("#pose-canvas");
-  const ctx = canvas.getContext("2d");
-
-  const resultLayer = {
-    right: document.querySelector("#pose-result-right"),
-    left: document.querySelector("#pose-result-left"),
-  };
-  // configure gesture estimator
-  // add "✌🏻" and "👍" as sample gestures
-  const knownGestures = [
-    fp.Gestures.VictoryGesture,
-    fp.Gestures.ThumbsUpGesture,
-  ];
   const GE = new fp.GestureEstimator(knownGestures);
   // load handpose model
   const detector = await createDetector();
@@ -213,33 +238,6 @@ async function main() {
   console.log("Starting predictions");
 }
 
-// initialise camera
-async function initCamera(width, height, fps) {
-  const constraints = {
-    audio: false,
-    video: {
-      facingMode: "user",
-      width: width,
-      height: height,
-      frameRate: { max: fps },
-    },
-  };
-
-  const video = document.querySelector("#pose-video");
-  video.width = width;
-  video.height = height;
-
-  // get video stream
-  const stream = await navigator.mediaDevices.getUserMedia(constraints);
-  video.srcObject = stream;
-
-  return new Promise((resolve) => {
-    video.onloadedmetadata = () => {
-      resolve(video);
-    };
-  });
-}
-
 function drawPoint(ctx, x, y, r, color) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, 2 * Math.PI);
@@ -248,17 +246,15 @@ function drawPoint(ctx, x, y, r, color) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  initCamera(
-    config.video.width,
-    config.video.height,
-    config.video.fps
-  ).then((video) => {
-    video.play();
-    video.addEventListener("loadeddata", (event) => {
-      console.log("Camera is ready");
-      main();
-    });
-  });
+  initCamera(config.video.width, config.video.height, config.video.fps).then(
+    (video) => {
+      video.play();
+      video.addEventListener("loadeddata", (event) => {
+        console.log("Camera is ready");
+        main();
+      });
+    }
+  );
 
   const canvas = document.querySelector("#pose-canvas");
   canvas.width = config.video.width;
