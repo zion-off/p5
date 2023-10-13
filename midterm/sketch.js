@@ -2,6 +2,40 @@ let eye;
 let bg;
 let font;
 let count;
+
+// struct for storing video dimensions and fps
+const config = {
+  video: { width: 640, height: 480, fps: 30 },
+};
+
+// colors of keypoints on user's hand
+const landmarkColors = {
+  thumb: "red",
+  index: "blue",
+  middle: "yellow",
+  ring: "green",
+  pinky: "pink",
+  wrist: "white",
+};
+
+const gestureStrings = {
+  thumbs_up: "👍",
+  victory: "✌🏻",
+};
+
+// initialise fingerpose
+async function createDetector() {
+  return window.handPoseDetection.createDetector(
+    window.handPoseDetection.SupportedModels.MediaPipeHands,
+    {
+      runtime: "mediapipe",
+      modelType: "full",
+      maxHands: 2,
+      solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915`,
+    }
+  );
+}
+
 function preload() {
   eye = loadImage("eye.png");
   bg = loadImage("bg.jpg");
@@ -117,39 +151,6 @@ function keyPressed() {
   if (keyCode == SHIFT) {
     balls.push(new Ball(mouseX, mouseY));
   }
-}
-
-// struct for storing video dimensions and fps
-const config = {
-  video: { width: 640, height: 480, fps: 30 },
-};
-
-// colors of keypoints on user's hand
-const landmarkColors = {
-  thumb: "red",
-  index: "blue",
-  middle: "yellow",
-  ring: "green",
-  pinky: "pink",
-  wrist: "white",
-};
-
-const gestureStrings = {
-  thumbs_up: "👍",
-  victory: "✌🏻",
-};
-
-// initialise fingerpose
-async function createDetector() {
-  return window.handPoseDetection.createDetector(
-    window.handPoseDetection.SupportedModels.MediaPipeHands,
-    {
-      runtime: "mediapipe",
-      modelType: "full",
-      maxHands: 2,
-      solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915`,
-    }
-  );
 }
 
 async function main() {
