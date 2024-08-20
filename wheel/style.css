@@ -1,0 +1,33 @@
+@font-face {
+    font-family: 'SF Pro Display Semibold';
+    src: url("SF-Pro-Display-Semibold.otf");
+}
+
+body {
+    overflow-y: hidden;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.semibold {
+    margin: 0;
+    font-family: 'SF Pro Display Semibold';
+    font-size: 5rem;
+    text-transform: uppercase;
+}
+
+img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 500px;
+    height: auto;
+    transform-origin: center;
+}
