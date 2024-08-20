@@ -82,9 +82,11 @@ class Letter {
 
 function preload() {
   font = loadFont("font.ttf");
+  img = loadImage('spoon.png');
 }
 
 function setup() {
+  noCursor();
   createCanvas(400, 400);
   // adding a shadow to the text
   let shadowColor = color(214, 124, 28);
@@ -194,6 +196,8 @@ function draw() {
   // update the noise values
   xOff += 0.01;
   yOff += 0.01;
+
+  image(img, mouseX-30, mouseY-60, 100, 100);
 }
 
 // function to keep the Letters bouncing off the edges of the canvas
